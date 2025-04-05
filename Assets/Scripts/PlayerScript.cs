@@ -21,6 +21,7 @@ public class PlayerScript : MonoBehaviour
     Dictionary<Vector3, HashSet<Vector3>> adjacentVertices;
     bool inputJumped, inputDropped;
     float cubeFactor, vCubeFactor;
+    Vector3 respawnPosition;
 
     void Start() {
         cam = Camera.main;
@@ -90,6 +91,13 @@ public class PlayerScript : MonoBehaviour
     }
 
     void FixedUpdate() {
+        // Respawning.
+        if (rb.position.y < -5) {
+            rb.position = respawnPosition;
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
         // Soft "collisions."
         float phi = Mathf.PI * (3f - Mathf.Sqrt(5f));
         Vector3 totalUndampedForce = Vector3.zero;
@@ -119,7 +127,7 @@ public class PlayerScript : MonoBehaviour
                         float dampingFactor = Mathf.InverseLerp(1, 0, dot);
                         force *= Mathf.Lerp(1, dampingFactor, collisionDampingFactor);
                         rb.AddForce(force, ForceMode.Acceleration);
-                        hit.rigidbody.GetComponent<CollideWithPlayerScript>()?.CollideWithPlayer(rb);
+                        hit.rigidbody?.GetComponent<CollideWithPlayerScript>()?.CollideWithPlayer(rb);
                     }
                 }
             }
@@ -162,5 +170,9 @@ public class PlayerScript : MonoBehaviour
             horizontalVelocity *= horizontalDamping;
         }
         rb.linearVelocity = new Vector3(horizontalVelocity.x, rb.linearVelocity.y, horizontalVelocity.y);
+    }
+
+    public void SetRespawnPosition(Vector3 position) {
+        respawnPosition = position;
     }
 }
