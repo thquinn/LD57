@@ -17,7 +17,8 @@ public class PlayerScript : MonoBehaviour
     Camera cam;
     List<Vector3> originalVertices;
     Dictionary<Vector3, HashSet<Vector3>> adjacentVertices;
-    bool inputJumped;
+    bool inputJumped, inputDropped;
+    float cubeFactor, vCubeFactor;
 
     void Start() {
         cam = Camera.main;
@@ -43,6 +44,8 @@ public class PlayerScript : MonoBehaviour
 
     void Update() {
         inputJumped |= inputJump.action.triggered;
+        inputDropped = inputDrop.action.ReadValue<float>() > 0.5f;
+        cubeFactor = Mathf.SmoothDamp(cubeFactor, inputDropped ? 1 : 0, ref vCubeFactor, 0.05f);
         UpdateMesh();
     }
 
@@ -53,10 +56,11 @@ public class PlayerScript : MonoBehaviour
             Vector3 direction = transform.rotation * originalVertex;
             RaycastHit hit;
             Ray ray = new Ray(transform.position, direction);
-            if (Physics.Raycast(ray, out hit, 0.5f)) {
+            float maxDistance = Mathf.Lerp(0.5f, CubeRadiusInDirection(direction.normalized), cubeFactor);
+            if (Physics.Raycast(ray, out hit, maxDistance)) {
                 scales.Add(originalVertex, hit.distance * 2);
             } else {
-                scales.Add(originalVertex, 1);
+                scales.Add(originalVertex, maxDistance * 2);
             }
         }
         List<Vector3> newVertices = new();
@@ -73,6 +77,14 @@ public class PlayerScript : MonoBehaviour
             newVertices.Add(vertex * scale);
         }
         meshFilter.mesh.SetVertices(newVertices);
+    }
+    public static float CubeRadiusInDirection(Vector3 dir) {
+        // Avoid division by zero by taking reciprocals carefully
+        float xDist = 0.5f / Mathf.Abs(dir.x == 0f ? float.Epsilon : dir.x);
+        float yDist = 0.5f / Mathf.Abs(dir.y == 0f ? float.Epsilon : dir.y);
+        float zDist = 0.5f / Mathf.Abs(dir.z == 0f ? float.Epsilon : dir.z);
+
+        return Mathf.Min(xDist, yDist, zDist);
     }
 
     void FixedUpdate() {
@@ -129,6 +141,8 @@ public class PlayerScript : MonoBehaviour
             rb.AddForce(jumpDirection * forceJump, ForceMode.VelocityChange);
             inputJumped = false;
         }
-        rb.AddForce(Vector3.down * forceDrop * inputDrop.action.ReadValue<float>(), ForceMode.Acceleration);
+        if (inputDropped) {
+            rb.AddForce(Vector3.down * forceDrop, ForceMode.Acceleration);
+        }
     }
 }
