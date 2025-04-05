@@ -9,7 +9,7 @@ public class PlayerScript : MonoBehaviour
 {
     public Rigidbody rb;
     public int numCasts;
-    public float forceMult, forceConst, forceHorizontalFactor, forceMove, forceJump, forceDrop;
+    public float forceMult, forceMultCube, forceHorizontalFactor, forceMove, forceJump, forceDrop;
     public float collisionDampingFactor, bounceFactor, walljumpVerticalFactor;
     public InputActionReference inputMove, inputJump, inputDrop;
     public MeshFilter meshFilter;
@@ -107,7 +107,7 @@ public class PlayerScript : MonoBehaviour
                     if (Physics.Raycast(ray, out hit, 0.5f)) {
                         numContacts++;
                         float normalizedDistance = Mathf.InverseLerp(0.5f, 0.166f, hit.distance);
-                        float strength = normalizedDistance * forceMult + forceConst;
+                        float strength = normalizedDistance * Mathf.Lerp(forceMult, forceMultCube, cubeFactor);
                         strength /= numCasts;
                         strength *= Mathf.Lerp(Mathf.Abs(direction.y * direction.y), 1, forceHorizontalFactor);
                         Vector3 force = -direction * normalizedDistance * strength;

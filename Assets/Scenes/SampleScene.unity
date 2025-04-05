@@ -583,7 +583,7 @@ Light:
     m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
-    m_Strength: 0.5
+    m_Strength: 1
     m_Bias: 0.05
     m_NormalBias: 0.4
     m_NearPlane: 3
@@ -1139,8 +1139,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rb: {fileID: 1038537308}
   numCasts: 20
-  forceMult: 1000
-  forceConst: 0
+  forceMult: 100
+  forceMultCube: 10000
   forceHorizontalFactor: 0
   forceMove: 10
   forceJump: 4.5
