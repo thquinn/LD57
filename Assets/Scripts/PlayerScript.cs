@@ -11,8 +11,10 @@ public class PlayerScript : MonoBehaviour
     public int numCasts;
     public float forceMult, forceMultCube, forceHorizontalFactor, forceMove, forceJump, forceDrop;
     public float collisionDampingFactor, bounceFactor, walljumpVerticalFactor;
+    public float horizontalMaxSpeed, horizontalDampStationary, horizontalDampCube;
     public InputActionReference inputMove, inputJump, inputDrop;
     public MeshFilter meshFilter;
+    public LayerMask layerMaskCollision;
 
     Camera cam;
     List<Vector3> originalVertices;
@@ -57,7 +59,7 @@ public class PlayerScript : MonoBehaviour
             RaycastHit hit;
             Ray ray = new Ray(transform.position, direction);
             float maxDistance = Mathf.Lerp(0.5f, CubeRadiusInDirection(direction.normalized), cubeFactor);
-            if (Physics.Raycast(ray, out hit, maxDistance)) {
+            if (Physics.Raycast(ray, out hit, maxDistance, layerMaskCollision)) {
                 scales.Add(originalVertex, hit.distance * 2);
             } else {
                 scales.Add(originalVertex, maxDistance * 2);
@@ -104,7 +106,7 @@ public class PlayerScript : MonoBehaviour
                     Vector3 direction = new Vector3(x * mx, y, z * mz);
                     RaycastHit hit;
                     Ray ray = new Ray(transform.position, direction);
-                    if (Physics.Raycast(ray, out hit, 0.5f)) {
+                    if (Physics.Raycast(ray, out hit, 0.5f, layerMaskCollision)) {
                         numContacts++;
                         float normalizedDistance = Mathf.InverseLerp(0.5f, 0.166f, hit.distance);
                         float strength = normalizedDistance * Mathf.Lerp(forceMult, forceMultCube, cubeFactor);
@@ -144,5 +146,21 @@ public class PlayerScript : MonoBehaviour
         if (inputDropped) {
             rb.AddForce(Vector3.down * forceDrop, ForceMode.Acceleration);
         }
+
+        // Horizontal damping.
+        Vector2 horizontalVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.z);
+        if (horizontalVelocity.magnitude > horizontalMaxSpeed) {
+            horizontalVelocity /= horizontalVelocity.magnitude / horizontalMaxSpeed;
+        }
+        if (numContacts > 2) {
+            float horizontalDamping = 0;
+            if (moveInputVector == Vector2.zero) {
+                horizontalDamping = horizontalDampStationary;
+            }
+            horizontalDamping = Mathf.Lerp(horizontalDamping, horizontalDampCube, cubeFactor);
+            horizontalDamping = Mathf.Pow(1 - horizontalDamping, Time.fixedDeltaTime);
+            horizontalVelocity *= horizontalDamping;
+        }
+        rb.linearVelocity = new Vector3(horizontalVelocity.x, rb.linearVelocity.y, horizontalVelocity.y);
     }
 }
