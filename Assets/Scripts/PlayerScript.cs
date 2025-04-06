@@ -10,9 +10,11 @@ public class PlayerScript : MonoBehaviour
     public float forceMult, forceMultCube, forceHorizontalFactor, forceMove, forceJump, forceDrop;
     public float collisionDampingFactor, bounceFactor, walljumpVerticalFactor, walljumpForceMultiplier;
     public float horizontalMaxSpeed, horizontalDampStationary, horizontalDampCube, horizontalDampShotDisableTime;
+    public float glideFactor, glideSpeedMax;
     public InputActionReference inputMove, inputJump, inputDrop;
     public MeshFilter meshFilter;
     public LayerMask layerMaskCollision;
+    public TutorialTextScript tutorialTextScript;
 
     Camera cam;
     List<Vector3> originalVertices;
@@ -22,6 +24,8 @@ public class PlayerScript : MonoBehaviour
     Vector3 spawnPosition, respawnPosition;
     float shotCooldown;
     bool resetRB;
+    PickupScript pickup;
+    float pickupTimer;
 
     void Start() {
         cam = Camera.main;
@@ -52,16 +56,31 @@ public class PlayerScript : MonoBehaviour
         cubeFactor = Mathf.SmoothDamp(cubeFactor, inputDropped ? 1 : 0, ref vCubeFactor, 0.05f);
         shotCooldown = Mathf.Max(0, shotCooldown - Time.deltaTime);
         UpdateMesh();
+        if (pickup) {
+            pickupTimer -= Time.deltaTime;
+            if (pickupTimer <= 0) {
+                pickupTimer = 0;
+                pickup.Done();
+                pickup = null;
+            }
+        }
     }
 
     void UpdateMesh() {
+        PickupType pickupType = GetPickupType();
         Dictionary<Vector3, float> scales = new();
         foreach (Vector3 originalVertex in originalVertices) {
             if (scales.ContainsKey(originalVertex)) continue;
-            Vector3 direction = transform.rotation * originalVertex;
+            Vector3 direction = (transform.rotation * originalVertex).normalized;
             RaycastHit hit;
             Ray ray = new Ray(transform.position, direction);
-            float maxDistance = Mathf.Lerp(0.5f, CubeRadiusInDirection(direction.normalized), cubeFactor);
+            float modifiedDistance = 0;
+            if (pickupType == PickupType.Glide) {
+                modifiedDistance = Mathf.Lerp(1.5f, 0.1f, Mathf.Pow(Mathf.Abs(direction.y), 0.2f));
+            } else {
+                modifiedDistance = CubeRadiusInDirection(direction);
+            }
+            float maxDistance = Mathf.Lerp(0.5f, modifiedDistance, cubeFactor);
             if (Physics.Raycast(ray, out hit, maxDistance, layerMaskCollision)) {
                 scales.Add(originalVertex, hit.distance * 2);
             } else {
@@ -93,6 +112,8 @@ public class PlayerScript : MonoBehaviour
     }
 
     void FixedUpdate() {
+        PickupType pickupType = GetPickupType();
+
         // Level transitions.
         if (resetRB) {
             rb.transform.position = spawnPosition + new Vector3(0, 2, 0);
@@ -105,6 +126,8 @@ public class PlayerScript : MonoBehaviour
             rb.position = respawnPosition;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
+            shotCooldown = 0;
+            FinishPickup();
         }
 
         // Soft "collisions."
@@ -143,15 +166,25 @@ public class PlayerScript : MonoBehaviour
         }
 
         // Input.
+        Vector2 horizontalVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.z);
+        float horizontalSpeed = horizontalVelocity.magnitude;
         Vector2 moveInputVector = inputMove.action.ReadValue<Vector2>();
         if (shotCooldown > 0) moveInputVector = Vector2.zero;
+        if (inputDropped && (pickupType != PickupType.Glide || numContacts > 2)) moveInputVector = Vector2.zero;
         Vector3 moveVector = new Vector3(moveInputVector.x, 0, moveInputVector.y);
         moveVector = Quaternion.AngleAxis(cam.transform.localRotation.eulerAngles.y, Vector3.up) * moveVector;
-        rb.AddForce(moveVector * forceMove, ForceMode.Acceleration);
+        horizontalVelocity = Quaternion.AngleAxis(cam.transform.localRotation.eulerAngles.y, Vector3.up) * moveVector;
+        Vector3 moveForce = moveVector * forceMove;
+        if (inputDropped && pickupType == PickupType.Glide) {
+            float dot = Vector2.Dot(moveVector.normalized, horizontalVelocity.normalized);
+            float sidewaysness = 1 - Mathf.Abs(dot);
+            moveForce *= sidewaysness;
+        }
+        rb.AddForce(moveForce, ForceMode.Acceleration);
         if (numContacts > 2) {
             Debug.DrawLine(transform.position, transform.position + totalUndampedForce.normalized * 0.5f, Color.white, 0.01f);
         }
-        if (inputJumped && numContacts > 2) {
+        if (inputJumped && numContacts > 2 && !inputDropped) {
             Vector3 jumpDirection = (totalUndampedForce.normalized + Vector3.up * walljumpVerticalFactor).normalized;
             // Damp player movement in the opposite direction of the jump.
             float dot = Vector3.Dot(rb.linearVelocity, jumpDirection);
@@ -164,15 +197,23 @@ public class PlayerScript : MonoBehaviour
             rb.AddForce(jumpDirection * jumpForce, ForceMode.VelocityChange);
             inputJumped = false;
         }
+
+        horizontalVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.z);
+        horizontalSpeed = horizontalVelocity.magnitude;
+
         if (inputDropped) {
-            rb.AddForce(Vector3.down * forceDrop, ForceMode.Acceleration);
+            if (pickupType == PickupType.Glide) {
+                float glide = glideFactor * Mathf.Min(1, horizontalSpeed / glideSpeedMax);
+                rb.AddForce(-Physics.gravity * glide, ForceMode.Acceleration);
+            } else {
+                rb.AddForce(Vector3.down * forceDrop, ForceMode.Acceleration);
+            }
         }
 
         // Horizontal damping.
         if (shotCooldown <= 0) {
-            Vector2 horizontalVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.z);
-            if (horizontalVelocity.magnitude > horizontalMaxSpeed) {
-                horizontalVelocity /= horizontalVelocity.magnitude / horizontalMaxSpeed;
+            if (horizontalSpeed > horizontalMaxSpeed) {
+                horizontalVelocity /= horizontalSpeed / horizontalMaxSpeed;
             }
             if (numContacts > 2) {
                 float horizontalDamping = 0;
@@ -191,10 +232,37 @@ public class PlayerScript : MonoBehaviour
         respawnPosition = position;
     }
     public void LevelTransition() {
+        FinishPickup();
         resetRB = true;
     }
     public void GetShot(Vector3 force) {
         rb.AddForce(force, ForceMode.VelocityChange);
         shotCooldown = horizontalDampShotDisableTime;
+    }
+    public void Pickup(PickupScript pickup) {
+        FinishPickup();
+        this.pickup = pickup;
+        pickupTimer = 10;
+    }
+    public PickupType GetPickupType() {
+        return pickup?.type ?? PickupType.None;
+    }
+    public int GetPickupSecondsLeft() {
+        return Mathf.CeilToInt(pickupTimer);
+    }
+    void FinishPickup() {
+        pickup?.Done();
+        pickupTimer = 0;
+    }
+
+    void OnTriggerEnter(Collider other) {
+        if (other.gameObject.tag == "Tutorial Zone") {
+            tutorialTextScript.Enter(other.gameObject.name);
+        }
+    }
+    void OnTriggerExit(Collider other) {
+        if (other.gameObject.tag == "Tutorial Zone") {
+            tutorialTextScript.Leave();
+        }
     }
 }

@@ -8,6 +8,7 @@ public class CameraScript : MonoBehaviour
     public GameObject player;
     public InputActionReference inputLook;
     public float sensitivityX, sensitivityY;
+    public Vector2 yAngleLimit;
     public float introTime;
 
     Vector3 aimPosition, v;
@@ -19,13 +20,16 @@ public class CameraScript : MonoBehaviour
     void Start() {
         aimPosition = player.transform.position;
         distance = 5;
-        horizontalAngle = 180 * Mathf.Deg2Rad;
-        verticalAngle =  30 * Mathf.Deg2Rad;
+        ResetAngles();
         introPosition = transform.position;
         introRotation = transform.rotation;
         if (GameObject.FindGameObjectWithTag("Intro") == null) {
             introT = introTime;
         }
+    }
+    public void ResetAngles() {
+        horizontalAngle = 180;
+        verticalAngle = 30;
     }
 
     void Update() {
@@ -38,6 +42,8 @@ public class CameraScript : MonoBehaviour
         Vector2 inputVector = inputLook.action.ReadValue<Vector2>();
         if (!introDone) inputVector = Vector2.zero;
         horizontalAngle += inputVector.x * sensitivityX * Time.deltaTime;
+        verticalAngle += inputVector.y * sensitivityY * Time.deltaTime;
+        verticalAngle = Mathf.Clamp(verticalAngle, yAngleLimit.x, yAngleLimit.y);
 
         if (Vector3.Distance(aimPosition, player.transform.position) > 10) {
             aimPosition = player.transform.position;
@@ -45,10 +51,10 @@ public class CameraScript : MonoBehaviour
         } else {
             aimPosition = Vector3.SmoothDamp(aimPosition, player.transform.position, ref v, 0.1f);
         }
-        float xzDistance = distance * Mathf.Cos(verticalAngle);
-        float x = Mathf.Cos(horizontalAngle) * xzDistance;
-        float y = Mathf.Sin(verticalAngle) * distance;
-        float z = Mathf.Sin(horizontalAngle) * xzDistance;
+        float xzDistance = distance * Mathf.Cos(verticalAngle * Mathf.Deg2Rad);
+        float x = Mathf.Cos(horizontalAngle * Mathf.Deg2Rad) * xzDistance;
+        float y = Mathf.Sin(verticalAngle * Mathf.Deg2Rad) * distance;
+        float z = Mathf.Sin(horizontalAngle * Mathf.Deg2Rad) * xzDistance;
         Vector3 targetPosition = aimPosition + new Vector3(x, y, z);
         if (introDone) {
             transform.localPosition = targetPosition;

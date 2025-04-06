@@ -3,6 +3,7 @@ using UnityEngine;
 public class LevelManagerScript : MonoBehaviour
 {
     public PlayerScript playerScript;
+    public CameraScript cameraScript;
     public bool transitioning;
 
     int currentLevel;
@@ -27,6 +28,7 @@ public class LevelManagerScript : MonoBehaviour
             currentLevel++;
             transform.GetChild(currentLevel).gameObject.SetActive(true);
             playerScript.LevelTransition();
+            cameraScript.ResetAngles();
             Time.timeScale = 1f;
             transitionTimer = 0;
         }

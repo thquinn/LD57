@@ -152,13 +152,13 @@ MonoBehaviour:
   layerMaskPlayerAndTerrain:
     serializedVersion: 2
     m_Bits: 257
-  followFactor: 0.8
+  followFactor: 0.85
   followFactorLocked: 0.5
   maxRange: 20
-  lockDistanceMin: 1
-  lockDistanceMax: 2
+  lockDistanceMin: 0.5
+  lockDistanceMax: 1
   lockSpeed: 2
-  shootTime: 1
+  shootTime: 0.5
   shootDelay: 0.1666
   shootPower: 20
 --- !u!1 &2756305433188190870
