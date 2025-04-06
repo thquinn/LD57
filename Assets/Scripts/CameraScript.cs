@@ -14,7 +14,7 @@ public class CameraScript : MonoBehaviour
     void Start() {
         aimPosition = player.transform.position;
         distance = 5;
-        horizontalAngle = 0;
+        horizontalAngle = 180 * Mathf.Deg2Rad;
         verticalAngle =  30 * Mathf.Deg2Rad;
     }
 

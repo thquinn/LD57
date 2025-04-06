@@ -91,7 +91,7 @@ public class PlayerScript : MonoBehaviour
 
     void FixedUpdate() {
         // Respawning.
-        if (rb.position.y < -5) {
+        if (rb.position.y < GameObject.FindGameObjectWithTag("Exit").transform.position.y - 5) {
             rb.position = respawnPosition;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
