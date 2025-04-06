@@ -47,7 +47,7 @@ public class GaussScript : MonoBehaviour
                 if (didHit) {
                     player.GetComponent<PlayerScript>().GetShot(direction * shootPower);
                 }
-                float laserLength = didHit ? hit.distance : maxRange;
+                float laserLength = hit.collider == null ? maxRange : hit.distance;
                 laser.transform.position = transform.position + reticleDirection * laserLength / 2;
                 Vector3 laserScale = laser.transform.localScale;
                 laserScale.z = laserLength;
