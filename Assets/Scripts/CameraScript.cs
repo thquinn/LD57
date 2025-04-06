@@ -23,6 +23,9 @@ public class CameraScript : MonoBehaviour
         verticalAngle =  30 * Mathf.Deg2Rad;
         introPosition = transform.position;
         introRotation = transform.rotation;
+        if (GameObject.FindGameObjectWithTag("Intro") == null) {
+            introT = introTime;
+        }
     }
 
     void Update() {
@@ -36,7 +39,12 @@ public class CameraScript : MonoBehaviour
         if (!introDone) inputVector = Vector2.zero;
         horizontalAngle += inputVector.x * sensitivityX * Time.deltaTime;
 
-        aimPosition = Vector3.SmoothDamp(aimPosition, player.transform.position, ref v, 0.1f);
+        if (Vector3.Distance(aimPosition, player.transform.position) > 10) {
+            aimPosition = player.transform.position;
+            v = Vector3.zero;
+        } else {
+            aimPosition = Vector3.SmoothDamp(aimPosition, player.transform.position, ref v, 0.1f);
+        }
         float xzDistance = distance * Mathf.Cos(verticalAngle);
         float x = Mathf.Cos(horizontalAngle) * xzDistance;
         float y = Mathf.Sin(verticalAngle) * distance;

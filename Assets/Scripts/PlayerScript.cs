@@ -19,8 +19,9 @@ public class PlayerScript : MonoBehaviour
     Dictionary<Vector3, HashSet<Vector3>> adjacentVertices;
     bool inputJumped, inputDropped;
     float cubeFactor, vCubeFactor;
-    Vector3 respawnPosition;
+    Vector3 spawnPosition, respawnPosition;
     float shotCooldown;
+    bool resetRB;
 
     void Start() {
         cam = Camera.main;
@@ -42,6 +43,7 @@ public class PlayerScript : MonoBehaviour
             adjacentVertices[originalVertices[b]].Add(originalVertices[c]);
             adjacentVertices[originalVertices[c]].Add(originalVertices[b]);
         }
+        spawnPosition = transform.position;
     }
 
     void Update() {
@@ -91,8 +93,15 @@ public class PlayerScript : MonoBehaviour
     }
 
     void FixedUpdate() {
+        // Level transitions.
+        if (resetRB) {
+            rb.transform.position = spawnPosition + new Vector3(0, 2, 0);
+            rb.linearVelocity *= .9f;
+            resetRB = false;
+        }
+
         // Respawning.
-        if (rb.position.y < GameObject.FindGameObjectWithTag("Exit").transform.position.y - 5) {
+        if (rb.position.y < GameObject.FindGameObjectWithTag("Exit")?.transform.position.y - 5) {
             rb.position = respawnPosition;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
@@ -180,6 +189,9 @@ public class PlayerScript : MonoBehaviour
 
     public void SetRespawnPosition(Vector3 position) {
         respawnPosition = position;
+    }
+    public void LevelTransition() {
+        resetRB = true;
     }
     public void GetShot(Vector3 force) {
         rb.AddForce(force, ForceMode.VelocityChange);

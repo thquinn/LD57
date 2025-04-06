@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3913081867619812806}
   - component: {fileID: 2285816984449866761}
   - component: {fileID: 378782313829724058}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: default (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -134,7 +134,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &3214555561668768550
@@ -192,7 +192,7 @@ GameObject:
   - component: {fileID: 5919662786750916066}
   - component: {fileID: 6248011230950642901}
   - component: {fileID: 1286708803103110458}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: default (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -313,7 +313,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &4447007868821547595
@@ -480,7 +480,7 @@ GameObject:
   - component: {fileID: 7310237661840617001}
   - component: {fileID: 8200793281085536167}
   - component: {fileID: 7457744334023524437}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: default (10)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -601,7 +601,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &4891008366994520482
@@ -617,13 +617,13 @@ GameObject:
   - component: {fileID: 1066305425871648505}
   - component: {fileID: 5222108797816687820}
   - component: {fileID: 5501141107340221629}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: default (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4654237319711035173
 Transform:
   m_ObjectHideFlags: 0
@@ -738,7 +738,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &5334379170107079619
@@ -754,7 +754,7 @@ GameObject:
   - component: {fileID: 4431140649091299860}
   - component: {fileID: 2529700179780100053}
   - component: {fileID: 6136206992569589460}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: default (7)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -875,7 +875,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &5486706347443417903
@@ -977,7 +977,7 @@ GameObject:
   - component: {fileID: 4173084989199018855}
   - component: {fileID: 8190003201915651925}
   - component: {fileID: 8130436917662524386}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: default (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1098,7 +1098,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &7171973350888591296
@@ -1114,7 +1114,7 @@ GameObject:
   - component: {fileID: 3369058648230063637}
   - component: {fileID: 6639094056901477017}
   - component: {fileID: 2920321852448311043}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: default (8)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1235,7 +1235,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &7343282683938548240
@@ -1251,7 +1251,7 @@ GameObject:
   - component: {fileID: 943787684318491578}
   - component: {fileID: 5692299473143351484}
   - component: {fileID: 8505444890789755016}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: default (6)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1372,7 +1372,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
 --- !u!1 &8205429916382023800
@@ -1388,7 +1388,7 @@ GameObject:
   - component: {fileID: 333986062413434218}
   - component: {fileID: 6626434149108598793}
   - component: {fileID: 136509068621928909}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: default (9)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1509,6 +1509,6 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 0
   m_CollisionDetection: 0
