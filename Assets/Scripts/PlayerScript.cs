@@ -122,7 +122,8 @@ public class PlayerScript : MonoBehaviour
         }
 
         // Respawning.
-        if (rb.position.y < GameObject.FindGameObjectWithTag("Exit")?.transform.position.y - 5) {
+        GameObject voidYObject = GameObject.FindGameObjectWithTag("Void Y") ?? GameObject.FindGameObjectWithTag("Exit");
+        if (rb.position.y < voidYObject.transform.position.y - 5) {
             rb.position = respawnPosition;
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;

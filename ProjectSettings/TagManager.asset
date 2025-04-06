@@ -7,6 +7,7 @@ TagManager:
   - Exit
   - Intro
   - Tutorial Zone
+  - Void Y
   layers:
   - Default
   - TransparentFX
