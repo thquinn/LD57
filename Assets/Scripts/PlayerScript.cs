@@ -1,3 +1,4 @@
+using Assets.Code;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,7 +8,7 @@ public class PlayerScript : MonoBehaviour
     public Rigidbody rb;
     public int numCasts;
     public float forceMult, forceMultCube, forceHorizontalFactor, forceMove, forceJump, forceDrop;
-    public float collisionDampingFactor, bounceFactor, walljumpVerticalFactor;
+    public float collisionDampingFactor, bounceFactor, walljumpVerticalFactor, walljumpForceMultiplier;
     public float horizontalMaxSpeed, horizontalDampStationary, horizontalDampCube, horizontalDampShotDisableTime;
     public InputActionReference inputMove, inputJump, inputDrop;
     public MeshFilter meshFilter;
@@ -148,7 +149,10 @@ public class PlayerScript : MonoBehaviour
             if (dot < 0) {
                 rb.AddForce(-dot * jumpDirection * bounceFactor, ForceMode.VelocityChange);
             }
-            rb.AddForce(jumpDirection * forceJump, ForceMode.VelocityChange);
+            // Non-vertical jumps get extra oomph to make walljumping easier.
+            float jumpForce = forceJump;
+            jumpForce *= 1 + jumpDirection.xz().magnitude * walljumpForceMultiplier;
+            rb.AddForce(jumpDirection * jumpForce, ForceMode.VelocityChange);
             inputJumped = false;
         }
         if (inputDropped) {
