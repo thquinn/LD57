@@ -8,6 +8,7 @@ TagManager:
   - Intro
   - Tutorial Zone
   - Void Y
+  - Prop
   layers:
   - Default
   - TransparentFX

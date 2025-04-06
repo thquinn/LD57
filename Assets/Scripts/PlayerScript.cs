@@ -160,6 +160,9 @@ public class PlayerScript : MonoBehaviour
                         float dampingFactor = Mathf.InverseLerp(1, 0, dot);
                         force *= Mathf.Lerp(1, dampingFactor, collisionDampingFactor);
                         rb.AddForce(force, ForceMode.Acceleration);
+                        if (hit.rigidbody?.gameObject.tag == "Prop") {
+                            hit.rigidbody?.AddForce(-force, ForceMode.Force);
+                        }
                         hit.rigidbody?.GetComponent<CollideWithPlayerScript>()?.CollideWithPlayer(rb);
                     }
                 }
