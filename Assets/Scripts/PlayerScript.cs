@@ -1,7 +1,4 @@
-using Mono.Cecil.Cil;
-using NUnit.Framework;
 using System.Collections.Generic;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,7 +8,7 @@ public class PlayerScript : MonoBehaviour
     public int numCasts;
     public float forceMult, forceMultCube, forceHorizontalFactor, forceMove, forceJump, forceDrop;
     public float collisionDampingFactor, bounceFactor, walljumpVerticalFactor;
-    public float horizontalMaxSpeed, horizontalDampStationary, horizontalDampCube;
+    public float horizontalMaxSpeed, horizontalDampStationary, horizontalDampCube, horizontalDampShotDisableTime;
     public InputActionReference inputMove, inputJump, inputDrop;
     public MeshFilter meshFilter;
     public LayerMask layerMaskCollision;
@@ -22,6 +19,7 @@ public class PlayerScript : MonoBehaviour
     bool inputJumped, inputDropped;
     float cubeFactor, vCubeFactor;
     Vector3 respawnPosition;
+    float shotCooldown;
 
     void Start() {
         cam = Camera.main;
@@ -46,9 +44,10 @@ public class PlayerScript : MonoBehaviour
     }
 
     void Update() {
-        inputJumped |= inputJump.action.triggered;
+        inputJumped |= inputJump.action.triggered && shotCooldown <= 0;
         inputDropped = inputDrop.action.ReadValue<float>() > 0.5f;
         cubeFactor = Mathf.SmoothDamp(cubeFactor, inputDropped ? 1 : 0, ref vCubeFactor, 0.05f);
+        shotCooldown = Mathf.Max(0, shotCooldown - Time.deltaTime);
         UpdateMesh();
     }
 
@@ -82,7 +81,7 @@ public class PlayerScript : MonoBehaviour
         meshFilter.mesh.SetVertices(newVertices);
     }
     public static float CubeRadiusInDirection(Vector3 dir) {
-        // Avoid division by zero by taking reciprocals carefully
+        // ChatGPT did this
         float xDist = 0.5f / Mathf.Abs(dir.x == 0f ? float.Epsilon : dir.x);
         float yDist = 0.5f / Mathf.Abs(dir.y == 0f ? float.Epsilon : dir.y);
         float zDist = 0.5f / Mathf.Abs(dir.z == 0f ? float.Epsilon : dir.z);
@@ -135,6 +134,7 @@ public class PlayerScript : MonoBehaviour
 
         // Input.
         Vector2 moveInputVector = inputMove.action.ReadValue<Vector2>();
+        if (shotCooldown > 0) moveInputVector = Vector2.zero;
         Vector3 moveVector = new Vector3(moveInputVector.x, 0, moveInputVector.y);
         moveVector = Quaternion.AngleAxis(cam.transform.localRotation.eulerAngles.y, Vector3.up) * moveVector;
         rb.AddForce(moveVector * forceMove, ForceMode.Acceleration);
@@ -156,23 +156,29 @@ public class PlayerScript : MonoBehaviour
         }
 
         // Horizontal damping.
-        Vector2 horizontalVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.z);
-        if (horizontalVelocity.magnitude > horizontalMaxSpeed) {
-            horizontalVelocity /= horizontalVelocity.magnitude / horizontalMaxSpeed;
-        }
-        if (numContacts > 2) {
-            float horizontalDamping = 0;
-            if (moveInputVector == Vector2.zero) {
-                horizontalDamping = horizontalDampStationary;
+        if (shotCooldown <= 0) {
+            Vector2 horizontalVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.z);
+            if (horizontalVelocity.magnitude > horizontalMaxSpeed) {
+                horizontalVelocity /= horizontalVelocity.magnitude / horizontalMaxSpeed;
             }
-            horizontalDamping = Mathf.Lerp(horizontalDamping, horizontalDampCube, cubeFactor);
-            horizontalDamping = Mathf.Pow(1 - horizontalDamping, Time.fixedDeltaTime);
-            horizontalVelocity *= horizontalDamping;
+            if (numContacts > 2) {
+                float horizontalDamping = 0;
+                if (moveInputVector == Vector2.zero) {
+                    horizontalDamping = horizontalDampStationary;
+                }
+                horizontalDamping = Mathf.Lerp(horizontalDamping, horizontalDampCube, cubeFactor);
+                horizontalDamping = Mathf.Pow(1 - horizontalDamping, Time.fixedDeltaTime);
+                horizontalVelocity *= horizontalDamping;
+            }
+            rb.linearVelocity = new Vector3(horizontalVelocity.x, rb.linearVelocity.y, horizontalVelocity.y);
         }
-        rb.linearVelocity = new Vector3(horizontalVelocity.x, rb.linearVelocity.y, horizontalVelocity.y);
     }
 
     public void SetRespawnPosition(Vector3 position) {
         respawnPosition = position;
+    }
+    public void GetShot(Vector3 force) {
+        rb.AddForce(force, ForceMode.VelocityChange);
+        shotCooldown = horizontalDampShotDisableTime;
     }
 }
