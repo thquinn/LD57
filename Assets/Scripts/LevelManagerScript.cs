@@ -3,6 +3,7 @@ using UnityEngine;
 public class LevelManagerScript : MonoBehaviour
 {
     public PlayerScript playerScript;
+    public bool transitioning;
 
     int currentLevel;
     float transitionTimer;
@@ -17,10 +18,11 @@ public class LevelManagerScript : MonoBehaviour
     }
 
     void Update() {
-        if (GameObject.FindGameObjectWithTag("Exit") != null) return;
+        transitioning = GameObject.FindGameObjectWithTag("Exit") == null;
+        if (!transitioning) return;
         Time.timeScale = 0.2f;
         transitionTimer += Time.unscaledDeltaTime;
-        if (transitionTimer >= 4) {
+        if (transitionTimer >= 3) {
             transform.GetChild(currentLevel).gameObject.SetActive(false);
             currentLevel++;
             transform.GetChild(currentLevel).gameObject.SetActive(true);
