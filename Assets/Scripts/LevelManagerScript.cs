@@ -6,7 +6,7 @@ public class LevelManagerScript : MonoBehaviour
     public CameraScript cameraScript;
     public bool transitioning;
 
-    int currentLevel;
+    public int currentLevel;
     float transitionTimer;
 
     void Start() {

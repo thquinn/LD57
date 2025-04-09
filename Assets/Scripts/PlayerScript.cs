@@ -1,33 +1,39 @@
 using Assets.Code;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 public class PlayerScript : MonoBehaviour
 {
     public Rigidbody rb;
     public int numCasts;
-    public float forceMult, forceMultCube, forceHorizontalFactor, forceMove, forceJump, forceDrop;
-    public float collisionDampingFactor, bounceFactor, walljumpVerticalFactor, walljumpForceMultiplier;
-    public float horizontalMaxSpeed, horizontalDampStationary, horizontalDampCube, horizontalDampShotDisableTime;
-    public float glideFactor, glideSpeedMax;
-    public InputActionReference inputMove, inputJump, inputDrop;
+    public float forceMult, forceMultCube, forceHorizontalFactor, forceVerticalDrag, forceMove, forceJump, forceDrop;
+    public float collisionDampingFactor, collisionMaxForce, bounceFactor, walljumpVerticalFactor, walljumpForceMultiplier;
+    public Vector2 walljumpVerticalSpeedRange;
+    public float horizontalMaxSpeed, horizontalMaxSpeedGlide, horizontalDampStationary, horizontalDampCube, horizontalDampShotDisableTime;
+    public float glideUpwardDrag, glideDownwardDrag, glideLift, glideSpeedMax;
+    public InputActionReference inputMove, inputJump, inputDrop, inputStart;
     public MeshFilter meshFilter;
     public LayerMask layerMaskCollision;
     public TutorialTextScript tutorialTextScript;
+    public UnityEvent onCheckpoint, onLevelTransition, onDeath, onWin;
 
     Camera cam;
     List<Vector3> originalVertices;
     Dictionary<Vector3, HashSet<Vector3>> adjacentVertices;
-    bool inputJumped, inputDropped;
+    float inputJumpSeconds;
+    bool inputDropped;
     float cubeFactor, vCubeFactor;
     Vector3 spawnPosition, respawnPosition;
     float shotCooldown;
     bool resetRB;
     PickupScript pickup;
-    float pickupTimer;
+    float pickupTimer, hitSFXTimer;
+    public int secrets, deaths;
 
     void Start() {
+        Cursor.lockState = CursorLockMode.Locked;
         cam = Camera.main;
         originalVertices = new();
         meshFilter.mesh.GetVertices(originalVertices);
@@ -51,7 +57,11 @@ public class PlayerScript : MonoBehaviour
     }
 
     void Update() {
-        inputJumped |= inputJump.action.triggered && shotCooldown <= 0;
+        if (inputJump.action.triggered && shotCooldown <= 0) {
+            inputJumpSeconds = .1f;
+        } else {
+            inputJumpSeconds -= Time.unscaledDeltaTime;
+        }
         inputDropped = inputDrop.action.ReadValue<float>() > 0.5f;
         cubeFactor = Mathf.SmoothDamp(cubeFactor, inputDropped ? 1 : 0, ref vCubeFactor, 0.05f);
         shotCooldown = Mathf.Max(0, shotCooldown - Time.deltaTime);
@@ -128,12 +138,15 @@ public class PlayerScript : MonoBehaviour
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
             shotCooldown = 0;
+            deaths++;
+            onDeath.Invoke();
             FinishPickup();
         }
 
         // Soft "collisions."
         float phi = Mathf.PI * (3f - Mathf.Sqrt(5f));
         Vector3 totalUndampedForce = Vector3.zero;
+        float maxForcePerCast = collisionMaxForce / numCasts;
         int numContacts = 0;
         for (int i = 0; i < numCasts; i++) {
             float y = 1f - (i / (float)(numCasts - 1)) * 2f;
@@ -159,6 +172,9 @@ public class PlayerScript : MonoBehaviour
                         float dot = Vector3.Dot(rb.linearVelocity, force);
                         float dampingFactor = Mathf.InverseLerp(1, 0, dot);
                         force *= Mathf.Lerp(1, dampingFactor, collisionDampingFactor);
+                        if (force.magnitude > maxForcePerCast) {
+                            force /= force.magnitude / maxForcePerCast;
+                        }
                         rb.AddForce(force, ForceMode.Acceleration);
                         if (hit.rigidbody?.gameObject.tag == "Prop") {
                             hit.rigidbody?.AddForce(-force, ForceMode.Force);
@@ -168,12 +184,23 @@ public class PlayerScript : MonoBehaviour
                 }
             }
         }
+        float collisionDot = Vector3.Dot(totalUndampedForce, rb.linearVelocity);
+        if (hitSFXTimer > 0) {
+            hitSFXTimer -= Time.deltaTime;
+        } else if (collisionDot < -300) {
+            SFXScript.instance.SFXHitHard(1f + 1f * Mathf.InverseLerp(-300, -400, collisionDot));
+            hitSFXTimer = .5f;
+        } else if (collisionDot < -100) {
+            SFXScript.instance.SFXHitSoft(1f + 1f * Mathf.InverseLerp(-100, -300, collisionDot));
+            hitSFXTimer = .5f;
+        }
 
         // Input.
         Vector2 horizontalVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.z);
         float horizontalSpeed = horizontalVelocity.magnitude;
         Vector2 moveInputVector = inputMove.action.ReadValue<Vector2>();
         if (shotCooldown > 0) moveInputVector = Vector2.zero;
+        if (GameObject.FindGameObjectWithTag("Intro")) return;
         if (inputDropped && (pickupType != PickupType.Glide || numContacts > 2)) moveInputVector = Vector2.zero;
         Vector3 moveVector = new Vector3(moveInputVector.x, 0, moveInputVector.y);
         moveVector = Quaternion.AngleAxis(cam.transform.localRotation.eulerAngles.y, Vector3.up) * moveVector;
@@ -188,8 +215,9 @@ public class PlayerScript : MonoBehaviour
         if (numContacts > 2) {
             Debug.DrawLine(transform.position, transform.position + totalUndampedForce.normalized * 0.5f, Color.white, 0.01f);
         }
-        if (inputJumped && numContacts > 2 && !inputDropped) {
-            Vector3 jumpDirection = (totalUndampedForce.normalized + Vector3.up * walljumpVerticalFactor).normalized;
+        if (inputJumpSeconds > 0 && numContacts > 2 && !inputDropped) {
+            float calculatedVerticalFactor = walljumpVerticalFactor * Mathf.InverseLerp(walljumpVerticalSpeedRange.x, walljumpVerticalSpeedRange.y, rb.linearVelocity.y);
+            Vector3 jumpDirection = (totalUndampedForce.normalized + Vector3.up * calculatedVerticalFactor).normalized;
             // Damp player movement in the opposite direction of the jump.
             float dot = Vector3.Dot(rb.linearVelocity, jumpDirection);
             if (dot < 0) {
@@ -199,7 +227,8 @@ public class PlayerScript : MonoBehaviour
             float jumpForce = forceJump;
             jumpForce *= 1 + jumpDirection.xz().magnitude * walljumpForceMultiplier;
             rb.AddForce(jumpDirection * jumpForce, ForceMode.VelocityChange);
-            inputJumped = false;
+            SFXScript.instance.SFXJump(0.4f * Mathf.InverseLerp(1, 5, jumpForce));
+            inputJumpSeconds = 0;
         }
 
         horizontalVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.z);
@@ -207,8 +236,10 @@ public class PlayerScript : MonoBehaviour
 
         if (inputDropped) {
             if (pickupType == PickupType.Glide) {
-                float glide = glideFactor * Mathf.Min(1, horizontalSpeed / glideSpeedMax);
-                rb.AddForce(-Physics.gravity * glide, ForceMode.Acceleration);
+                float drag = Mathf.Pow(rb.linearVelocity.y, 2) * rb.linearVelocity.y > 0 ? glideUpwardDrag : glideDownwardDrag;
+                rb.AddForce((rb.linearVelocity.y > 0 ? Vector3.down : Vector3.up) * drag, ForceMode.Acceleration);
+                float lift = Mathf.InverseLerp(0, glideSpeedMax, horizontalSpeed) * glideLift;
+                rb.AddForce(Vector3.up * lift, ForceMode.Acceleration);
             } else {
                 rb.AddForce(Vector3.down * forceDrop, ForceMode.Acceleration);
             }
@@ -216,8 +247,9 @@ public class PlayerScript : MonoBehaviour
 
         // Horizontal damping.
         if (shotCooldown <= 0) {
-            if (horizontalSpeed > horizontalMaxSpeed) {
-                horizontalVelocity /= horizontalSpeed / horizontalMaxSpeed;
+            float calculatedHorizontalMaxSpeed = inputDropped && pickupType == PickupType.Glide ? horizontalMaxSpeedGlide : horizontalMaxSpeed;
+            if (horizontalSpeed > calculatedHorizontalMaxSpeed) {
+                horizontalVelocity /= horizontalSpeed / calculatedHorizontalMaxSpeed;
             }
             if (numContacts > 2) {
                 float horizontalDamping = 0;
@@ -230,13 +262,20 @@ public class PlayerScript : MonoBehaviour
             }
             rb.linearVelocity = new Vector3(horizontalVelocity.x, rb.linearVelocity.y, horizontalVelocity.y);
         }
+        // Vertical damping.
+        rb.AddForce(Vector3.down * rb.linearVelocity.y * forceVerticalDrag, ForceMode.Acceleration);
+
+        // SFX.
+        SFXScript.instance.SetContactVolume(0.25f * Mathf.InverseLerp(2, 20, numContacts) * Mathf.InverseLerp(1, 8, horizontalSpeed));
     }
 
-    public void SetRespawnPosition(Vector3 position) {
+    public void TriggerCheckpoint(Vector3 position) {
         respawnPosition = position;
+        onCheckpoint.Invoke();
     }
     public void LevelTransition() {
         FinishPickup();
+        onLevelTransition.Invoke();
         resetRB = true;
     }
     public void GetShot(Vector3 force) {
@@ -257,6 +296,9 @@ public class PlayerScript : MonoBehaviour
     void FinishPickup() {
         pickup?.Done();
         pickupTimer = 0;
+    }
+    public void GetSecret() {
+        secrets++;
     }
 
     void OnTriggerEnter(Collider other) {

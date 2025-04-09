@@ -54,6 +54,7 @@ public class GaussScript : MonoBehaviour
                 laser.transform.localScale = laserScale;
                 laser.transform.rotation = Quaternion.LookRotation(reticleDirection);
                 laserAlpha = 1;
+                SFXScript.instance.SFXLaser(0.5f);
             }
             shootTimer = nextShootTimer;
             if (shootTimer > shootTime) {
@@ -82,6 +83,12 @@ public class GaussScript : MonoBehaviour
         if (lockOn >= 1) {
             shootTimer = Time.deltaTime;
             vReticle = Vector3.zero;
+        }
+
+        if (lockOn > 0 || didHit) {
+            float volume = 0.05f + 0.1f * Mathf.InverseLerp(3, 1, Vector3.Distance(reticlePosition, player.transform.position));
+            float pitch = 1 + lockOn;
+            SFXScript.instance.SetTrackingVolumeAndPitch(volume, pitch);
         }
     }
 }

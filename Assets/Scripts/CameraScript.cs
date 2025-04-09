@@ -8,10 +8,12 @@ public class CameraScript : MonoBehaviour
     public GameObject player;
     public InputActionReference inputLook;
     public float sensitivityX, sensitivityY;
+    public float bumpDistance;
     public Vector2 yAngleLimit;
     public float introTime;
+    public LayerMask layerMaskCameraCollision;
 
-    Vector3 aimPosition, v;
+    Vector3 aimPosition, v, vPos;
     float distance, verticalAngle, horizontalAngle;
     float introT;
     Vector3 introPosition;
@@ -40,6 +42,8 @@ public class CameraScript : MonoBehaviour
         bool introDone = introT > introTime;
 
         Vector2 inputVector = inputLook.action.ReadValue<Vector2>();
+        inputVector.x += Input.mousePositionDelta.x;
+        inputVector.y += Input.mousePositionDelta.y;
         if (!introDone) inputVector = Vector2.zero;
         horizontalAngle += inputVector.x * sensitivityX * Time.deltaTime;
         verticalAngle += inputVector.y * sensitivityY * Time.deltaTime;
@@ -56,8 +60,17 @@ public class CameraScript : MonoBehaviour
         float y = Mathf.Sin(verticalAngle * Mathf.Deg2Rad) * distance;
         float z = Mathf.Sin(horizontalAngle * Mathf.Deg2Rad) * xzDistance;
         Vector3 targetPosition = aimPosition + new Vector3(x, y, z);
+
+        // Push the camera forward if it would go through something.
+        RaycastHit hit = new RaycastHit();
+        Vector3 delta = targetPosition - aimPosition;
+        if (Physics.Raycast(aimPosition, delta.normalized, out hit, delta.magnitude, layerMaskCameraCollision)) {
+            targetPosition = aimPosition + delta.normalized * Mathf.Max(0, hit.distance - bumpDistance);
+        }
+
         if (introDone) {
-            transform.localPosition = targetPosition;
+            float distance = Vector3.Distance(transform.localPosition, targetPosition);
+            transform.localPosition = Vector3.SmoothDamp(transform.localPosition, targetPosition, ref vPos, 0.05f / Mathf.Max(1, distance));
             transform.LookAt(aimPosition);
         } else {
             Quaternion targetRotation = Quaternion.Euler(30, 90, 0);

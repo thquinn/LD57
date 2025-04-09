@@ -219,19 +219,19 @@
                 },
                 {
                     "name": "",
-                    "id": "603f3daf-40bd-4854-8724-93e8017f59e3",
-                    "path": "<XRController>/secondaryButton",
+                    "id": "540714a8-b468-4c53-ac7b-8a98c6cfa48d",
+                    "path": "<Gamepad>/rightTrigger",
                     "interactions": "",
                     "processors": "",
-                    "groups": "XR",
-                    "action": "Jump",
+                    "groups": "",
+                    "action": "Drop",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
                 {
                     "name": "",
-                    "id": "540714a8-b468-4c53-ac7b-8a98c6cfa48d",
-                    "path": "<Gamepad>/rightTrigger",
+                    "id": "6eeb0850-dd78-44e4-94e1-ff950e0b991a",
+                    "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -246,6 +246,17 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad",
+                    "action": "Start",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8b2b9e4a-cf79-4195-82bf-5add620a4802",
+                    "path": "<Keyboard>/enter",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
                     "action": "Start",
                     "isComposite": false,
                     "isPartOfComposite": false

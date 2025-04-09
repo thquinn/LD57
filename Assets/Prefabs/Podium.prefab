@@ -69,6 +69,7 @@ MonoBehaviour:
   icon: {fileID: 8227281430267939028}
   glow: {fileID: 4371592110540091211}
   iconMeshRenderer: {fileID: 2554496942010345604}
+  playSFX: 1
 --- !u!1 &4371592110540091211
 GameObject:
   m_ObjectHideFlags: 0

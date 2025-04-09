@@ -13,6 +13,7 @@ public class BreakableScript : CollideWithPlayerScript
                     child.gameObject.SetActive(true);
                     child.GetComponent<Rigidbody>().AddForce(playerRB.linearVelocity, ForceMode.VelocityChange);
                 }
+                SFXScript.instance.SFXShatter(0.125f);
             }
         }
     }

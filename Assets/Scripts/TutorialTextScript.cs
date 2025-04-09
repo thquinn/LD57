@@ -18,6 +18,7 @@ public class TutorialTextScript : MonoBehaviour
     }
 
     void Update() {
+        if (GameObject.FindGameObjectWithTag("Intro") != null) return;
         canvasGroup.alpha = Mathf.SmoothDamp(canvasGroup.alpha, tutorialActive ? 1 : 0, ref vAlpha, .2f);
     }
 }

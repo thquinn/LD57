@@ -4,6 +4,7 @@ public class PodiumScript : MonoBehaviour
 {
     public GameObject icon, glow;
     public MeshRenderer iconMeshRenderer;
+    public bool playSFX;
 
     float vIconGlow;
 
@@ -22,7 +23,9 @@ public class PodiumScript : MonoBehaviour
     }
 
     private void OnTriggerEnter(Collider other) {
+        GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerScript>().TriggerCheckpoint(transform.position + new Vector3(0, .5f, 0));
+        if (glow.activeSelf) return;
+        if (playSFX) SFXScript.instance.SFXPodium(0.5f);
         glow.SetActive(true);
-        GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerScript>().SetRespawnPosition(transform.position + new Vector3(0, .5f, 0));
     }
 }
