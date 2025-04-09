@@ -18,6 +18,8 @@ public class PlayerScript : MonoBehaviour
     public LayerMask layerMaskCollision;
     public TutorialTextScript tutorialTextScript;
     public UnityEvent onCheckpoint, onLevelTransition, onDeath, onWin;
+    public GameObject prefabTrail;
+    public Transform trailsContainer;
 
     Camera cam;
     List<Vector3> originalVertices;
@@ -31,6 +33,7 @@ public class PlayerScript : MonoBehaviour
     PickupScript pickup;
     float pickupTimer, hitSFXTimer;
     public int secrets, deaths;
+    List<TrailScript> trailDecals;
 
     void Start() {
         Cursor.lockState = CursorLockMode.Locked;
@@ -54,6 +57,7 @@ public class PlayerScript : MonoBehaviour
             adjacentVertices[originalVertices[c]].Add(originalVertices[b]);
         }
         spawnPosition = transform.position;
+        trailDecals = new();
     }
 
     void Update() {
@@ -184,6 +188,9 @@ public class PlayerScript : MonoBehaviour
                 }
             }
         }
+        if (numContacts > 2) {
+            LeaveTrail(-totalUndampedForce, totalUndampedForce.magnitude);
+        }
         float collisionDot = Vector3.Dot(totalUndampedForce, rb.linearVelocity);
         if (hitSFXTimer > 0) {
             hitSFXTimer -= Time.deltaTime;
@@ -310,5 +317,24 @@ public class PlayerScript : MonoBehaviour
         if (other.gameObject.tag == "Tutorial Zone") {
             tutorialTextScript.Leave();
         }
+    }
+
+    void LeaveTrail(Vector3 direction, float magnitude) {
+        direction.Normalize();
+        RaycastHit hit;
+        Ray ray = new Ray(rb.position, direction);
+        if (Physics.Raycast(ray, out hit, 0.5f, layerMaskCollision)) {
+            TrailScript trail = GetTrailDecal();
+            float size = .5f + .25f * Mathf.InverseLerp(10, 50, magnitude);
+            trail.Activate(size);
+            trail.transform.position = hit.point - direction * 0.1f;
+            trail.transform.LookAt(hit.point);
+        }
+    }
+    TrailScript GetTrailDecal() {
+        foreach (TrailScript script in trailDecals) {
+            if (!script.gameObject.activeSelf) return script;
+        }
+        return Instantiate(prefabTrail, trailsContainer).GetComponent<TrailScript>();
     }
 }

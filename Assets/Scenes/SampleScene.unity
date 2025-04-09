@@ -1682,6 +1682,37 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &232204428
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 232204429}
+  m_Layer: 0
+  m_Name: Trails
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &232204429
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 232204428}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 29.52, y: -7.966, z: 6.162}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &238080463 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2576657350732492660, guid: 9afa2379734904642a02477901140754, type: 3}
@@ -6748,7 +6779,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &267379894
 Transform:
   m_ObjectHideFlags: 0
@@ -11240,6 +11271,8 @@ MonoBehaviour:
   onWin:
     m_PersistentCalls:
       m_Calls: []
+  prefabTrail: {fileID: 4307715835790670228, guid: c9e942ed22592d3488f7881cd01b1791, type: 3}
+  trailsContainer: {fileID: 232204429}
   secrets: 0
   deaths: 0
 --- !u!1001 &1067972688
@@ -14650,7 +14683,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1704638360
 Transform:
   m_ObjectHideFlags: 0
@@ -17098,7 +17131,7 @@ GameObject:
   - component: {fileID: 6581325174565678387}
   - component: {fileID: 7669676625884187047}
   - component: {fileID: 8323425326397953146}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: default
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -21836,3 +21869,4 @@ SceneRoots:
   - {fileID: 776521183}
   - {fileID: 1235259265}
   - {fileID: 936252965}
+  - {fileID: 232204429}
