@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class GaussScript : MonoBehaviour
 {
@@ -54,6 +55,13 @@ public class GaussScript : MonoBehaviour
                 laser.transform.localScale = laserScale;
                 laser.transform.rotation = Quaternion.LookRotation(reticleDirection);
                 laserAlpha = 1;
+                if (hit.collider?.gameObject != null) {
+                    ParticleSystem particles = GameObject.FindGameObjectWithTag("Laser Impact").GetComponent<ParticleSystem>();
+                    particles.transform.position = hit.point;
+                    particles.Play();
+
+                }
+                GameObject.FindGameObjectWithTag("Laser Light Line").GetComponent<LaserLightLineScript>().Show(laser.transform.position, laser.transform.rotation, laserLength);
                 SFXScript.instance.SFXLaser(0.5f);
             }
             shootTimer = nextShootTimer;

@@ -9,6 +9,8 @@ TagManager:
   - Tutorial Zone
   - Void Y
   - Prop
+  - Laser Light Line
+  - Laser Impact
   layers:
   - Default
   - TransparentFX

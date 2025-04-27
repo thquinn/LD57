@@ -325,7 +325,7 @@ public class PlayerScript : MonoBehaviour
         Ray ray = new Ray(rb.position, direction);
         if (Physics.Raycast(ray, out hit, 0.5f, layerMaskCollision)) {
             TrailScript trail = GetTrailDecal();
-            float size = .5f + .25f * Mathf.InverseLerp(10, 50, magnitude);
+            float size = .33f + .5f * Mathf.InverseLerp(5, 60, magnitude);
             trail.Activate(size);
             trail.transform.position = hit.point - direction * 0.1f;
             trail.transform.LookAt(hit.point);
@@ -335,6 +335,8 @@ public class PlayerScript : MonoBehaviour
         foreach (TrailScript script in trailDecals) {
             if (!script.gameObject.activeSelf) return script;
         }
-        return Instantiate(prefabTrail, trailsContainer).GetComponent<TrailScript>();
+        TrailScript newScript = Instantiate(prefabTrail, trailsContainer).GetComponent<TrailScript>();
+        trailDecals.Add(newScript);
+        return newScript;
     }
 }

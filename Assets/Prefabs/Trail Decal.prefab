@@ -70,7 +70,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   decalProjector: {fileID: 3312266819626596652}
-  fadeRate: 1
+  fadeRate: 1.5
   fadeCurve:
     serializedVersion: 2
     m_Curve:

@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 
 public class CameraScript : MonoBehaviour
 {
+    static float MOUSE_SENSITIVITY = 0.5f;
+
     public GameObject player;
     public InputActionReference inputLook;
     public float sensitivityX, sensitivityY;
@@ -42,8 +44,8 @@ public class CameraScript : MonoBehaviour
         bool introDone = introT > introTime;
 
         Vector2 inputVector = inputLook.action.ReadValue<Vector2>();
-        inputVector.x += Input.mousePositionDelta.x;
-        inputVector.y += Input.mousePositionDelta.y;
+        inputVector.x += Input.mousePositionDelta.x * MOUSE_SENSITIVITY;
+        inputVector.y += Input.mousePositionDelta.y * MOUSE_SENSITIVITY;
         if (!introDone) inputVector = Vector2.zero;
         horizontalAngle += inputVector.x * sensitivityX * Time.deltaTime;
         verticalAngle += inputVector.y * sensitivityY * Time.deltaTime;
